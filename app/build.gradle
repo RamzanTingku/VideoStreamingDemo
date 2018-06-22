@@ -35,10 +35,5 @@ dependencies {
     implementation 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
-    //Exo-Player
-    implementation 'com.google.android.exoplayer:exoplayer:2.7.3'
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.7.3'
-    implementation 'com.google.android.exoplayer:exoplayer-dash:2.7.3'
-    implementation 'com.google.android.exoplayer:exoplayer-ui:2.7.3'
     implementation 'com.android.support:cardview-v7:27.1.1'
 }

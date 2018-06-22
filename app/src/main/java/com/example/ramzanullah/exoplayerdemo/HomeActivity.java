@@ -9,6 +9,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
@@ -16,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
@@ -32,7 +34,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     private static final String Play_Back_Position = "video_view_position";
     private static final String Play_Back_Position2 = "video_view_position2";
 
-
     private int playbackPosition = 0;
     private int playbackPosition2 = 0;
 
@@ -40,6 +41,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     private Uri uri;
     SharedPreferences sharedpreferences;
     SharedPreferences.Editor editor;
+
+    private String videoURL = "rtsp://184.72.239.149/vod/mp4:BigBuckBunny_175k.mov";
 
     @BindView(R.id.scroll_view)
     ScrollView scrollView;
@@ -68,7 +71,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     @BindView(R.id.video_view_container2)
     FrameLayout videoContainer2;
 
-    private String videoURL = "rtsp://184.72.239.149/vod/mp4:BigBuckBunny_175k.mov";
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Override
@@ -79,13 +81,15 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
 
         Glide.with(this)
-                .load(R.drawable.capture)
+                .load(R.drawable.ramzan)
                 .apply(RequestOptions.bitmapTransform(new CircleCrop()))
                 .into(ivProfile);
 
 
         sharedpreferences = getSharedPreferences("VideoVIew", Context.MODE_PRIVATE);
         editor = sharedpreferences.edit();
+
+        updatePlaybackTime();
 
         mediaControls = new MediaController(this);
         mediaControls2 = new MediaController(this);
@@ -99,11 +103,31 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        updatePlaybackTime();
+
 
         ivPlay.setOnClickListener(this);
         ivPlay2.setOnClickListener(this);
 
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.iv_play:
+                ivPlay.setVisibility(View.GONE);
+                ivPlayCover.setVisibility(View.GONE);
+                progressBar.setVisibility(View.VISIBLE);
+                initVideo();
+
+                break;
+            case R.id.iv_play2:
+                ivPlay2.setVisibility(View.GONE);
+                ivPlayCover2.setVisibility(View.GONE);
+                progressBar2.setVisibility(View.VISIBLE);
+                initVideo2();
+
+                break;
+        }
     }
 
     private void initVideo() {
@@ -125,24 +149,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public boolean onInfo(MediaPlayer mp, int what, int extra) {
 
-                    mp.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
-                        @Override
-                        public void onBufferingUpdate(MediaPlayer mp, int percent) {
-
-                            progressBar.setProgress(percent);
-
-
-                        /*if(percent == 100){
-                            //video have completed buffering
-                            progressBar.setSecondaryProgress(percent);
-                        }
-
-                        if(percent == 100){
-                            //video have completed buffering
-                            progressBar.setSecondaryProgress(percent);
-                        }*/
-                        }
-                    });
 
                     if (MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START == what) {
                         progressBar.setVisibility(View.GONE);
@@ -157,18 +163,16 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                     }
 
 
-
-
                     return false;
                 }
             });
+
+        } else {
+            Toast.makeText(this, "Video Player is not compitable", Toast.LENGTH_SHORT).show();
         }
 
         uri = Uri.parse(videoURL);
         myVideoView.setVideoURI(uri);
-
-
-
 
     }
 
@@ -200,17 +204,22 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                     return false;
                 }
             });
+
+        }else {
+            Toast.makeText(this, "Video Player is not compitable", Toast.LENGTH_SHORT).show();
         }
 
         uri = Uri.parse(videoURL);
         myVideoView2.setVideoURI(uri);
-
     }
 
     public void updatePlaybackTime(){
 
         playbackPosition = sharedpreferences.getInt(Play_Back_Position, 0);
         playbackPosition2 = sharedpreferences.getInt(Play_Back_Position2, 0);
+
+        Log.d("test","getting "+playbackPosition);
+        Log.d("test","getting "+playbackPosition2);
 
     }
 
@@ -221,11 +230,17 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         editor.putInt(Play_Back_Position, playbackPosition);
         editor.putInt(Play_Back_Position2, playbackPosition2);
         editor.apply();
+
+        Log.d("test","saving "+playbackPosition);
+        Log.d("test","saving "+playbackPosition2);
     }
+
+
 
     @Override
     protected void onStart() {
         super.onStart();
+
 
         ivPlay.setVisibility(View.VISIBLE);
         ivPlayCover.setVisibility(View.VISIBLE);
@@ -234,7 +249,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         ivPlayCover2.setVisibility(View.VISIBLE);
 
         updatePlaybackTime();
-
 
     }
 
@@ -245,34 +259,16 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         myVideoView.pause();
         myVideoView2.pause();
         savePlaybackTime();
+
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        savePlaybackTime();
+
         myVideoView.stopPlayback();
         myVideoView2.stopPlayback();
-    }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.iv_play:
-                ivPlay.setVisibility(View.GONE);
-                ivPlayCover.setVisibility(View.GONE);
-                progressBar.setVisibility(View.VISIBLE);
-                initVideo();
-
-                break;
-            case R.id.iv_play2:
-                ivPlay2.setVisibility(View.GONE);
-                ivPlayCover2.setVisibility(View.GONE);
-                progressBar2.setVisibility(View.VISIBLE);
-                initVideo2();
-
-                break;
-        }
     }
 
 
